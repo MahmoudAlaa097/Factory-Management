@@ -35,6 +35,9 @@
                 <!-- Menu Item Dashboard -->
                 <x-sidebar.dropdown title="Dashboard" :pages="[['eCommerce', '#']]"/>
 
+                <!-- Menu Item Tasks -->
+                <x-sidebar.item title="Tasks" link="/tasks"/>
+
                 <!-- Menu Item Calendar -->
                 <x-sidebar.item title="Calendar" link="/calendar.html"/>
 
