@@ -60,7 +60,7 @@
                 <x-sidebar.dropdown title="Charts" :pages="[['Line Chart', '/line-chart.html'], ['Bar Chart', '/bar-chart.html']]"/>
 
                 <!-- Menu Item UI Elements -->
-                <x-sidebar.dropdown title="UI Elements" :pages="[['Alerts', '/alerts.html'], ['Avatars', '/avatars.html'], ['Badge', '/badge.html'], ['Buttons', '/buttons.html'], ['Images', '/images.html'], ['Videos', '/videos.html']]"/>
+                <x-sidebar.dropdown title="UI Elements" :pages="[['Alerts', '/alerts.html'], ['Avatars', '/avatars.html'], ['Badge', '/badge.html'], ['Buttons', '/buttons'], ['Images', '/images.html'], ['Videos', '/videos.html']]"/>
 
                 <!-- Menu Item Authentication -->
                 <x-sidebar.dropdown title="Authentication" :pages="[['Sign In', '/signin.html'], ['Sign Up', '/signup.html']]"/>

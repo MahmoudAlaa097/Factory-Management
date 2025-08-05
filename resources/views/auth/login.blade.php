@@ -49,10 +49,10 @@
                                         <div class="space-y-5">
                                             @csrf
                                             <!-- Username -->
-                                            <x-forms.input label="Username" placeholder="Enter your username" />
+                                            <x-forms.login-input label="Username" placeholder="Enter your username" />
 
                                             <!-- Password -->
-                                            <x-forms.input type="password" label="Password" placeholder="Enter your password" />
+                                            <x-forms.login-input type="password" label="Password" placeholder="Enter your password" />
 
 
                                             <!-- Button -->

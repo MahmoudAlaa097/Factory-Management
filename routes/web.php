@@ -11,3 +11,5 @@ Route::post('/login', [SessionController::class, 'store']);
 Route::get('/dashboard', [DashboardController::class, 'index']);
 
 Route::get('/tasks', [TaskController::class, 'index']);
+Route::get('/tasks/create', [TaskController::class, 'create']);
+Route::post('/tasks/store', [TaskController::class, 'store']);

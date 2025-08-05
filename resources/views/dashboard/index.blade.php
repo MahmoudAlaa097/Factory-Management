@@ -1,7 +1,4 @@
 <x-layout>
-    <!-- ===== Header ===== -->
-    <x-header/>
-
     <!-- ===== Main Content Start ===== -->
     <main>
         <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">

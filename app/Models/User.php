@@ -42,4 +42,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class, 'division_id');
+    }
+
+    public function managemenet()
+    {
+        return $this->belongTo(Management::class, 'management_id');
+    }
 }

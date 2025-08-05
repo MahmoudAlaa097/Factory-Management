@@ -47,6 +47,7 @@
                 class="fixed w-full h-screen z-9 bg-gray-900/50">
             </div>
             <!-- Small Device Overlay End -->
+            <x-header/>
 
             {{ $slot }}
         </div>
