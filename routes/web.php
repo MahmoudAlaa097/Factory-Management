@@ -13,3 +13,5 @@ Route::get('/dashboard', [DashboardController::class, 'index']);
 Route::get('/tasks', [TaskController::class, 'index']);
 Route::get('/tasks/create', [TaskController::class, 'create']);
 Route::post('/tasks/store', [TaskController::class, 'store']);
+Route::get('/tasks/{task}', [TaskController::class, 'show']);
+Route::get('/tasks/{task}/edit', [TaskController::class, 'update']);

@@ -11,6 +11,10 @@ class Task extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'scheduled_date' => 'date',
+    ];
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -24,5 +28,15 @@ class Task extends Model
     public function management()
     {
         return $this->division->management();
+    }
+
+    public function assingees()
+    {
+        return $this->belongsToMany(User::class, 'assigned_to');
+    }
+
+    public function assinger()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
     }
 }

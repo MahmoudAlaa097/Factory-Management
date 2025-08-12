@@ -1,3 +1,5 @@
+@props(['pages' => []])
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -49,7 +51,14 @@
             <!-- Small Device Overlay End -->
             <x-header/>
 
-            {{ $slot }}
+            <!-- Main Content Start -->
+            <main>
+                <div class="p-4 mx-auto max-w-[--breakpoint-2xl] md:p-6">
+                    <x-breadcramp :pages="$pages "/>
+
+                    {{ $slot }}
+                </div>
+            </main>
         </div>
 
         <!-- ===== Page Wrapper End ===== -->

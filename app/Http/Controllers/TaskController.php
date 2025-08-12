@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Division;
+use App\Models\Task;
 
 class TaskController extends Controller
 {
     public function index()
     {
         // Fetch all tasks
-        $tasks = auth()->user()->tasks()->with(['division', 'division.management'])->paginate(10);
+        $tasks = auth()->user()
+            ->tasks()
+            ->with(['division', 'division.management'])
+            ->latest()
+            ->paginate(10);
 
         // Pass tasks to the view
         return view('tasks.index', compact('tasks'));
@@ -54,5 +59,15 @@ class TaskController extends Controller
 
         // Redirect to the tasks index with a success message
         return redirect('/tasks')->with('success', 'Task created successfully!');
+    }
+
+    public function show(Task $task)
+    {
+        return view('tasks.show', [ 'task' => $task ]);
+    }
+
+    public function update(Task $task)
+    {
+        dd($task);
     }
 }
