@@ -39,10 +39,9 @@ class TaskController extends Controller
         request()->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'priority' => 'required|in:low,medium,high',
+            'priority' => 'required|in:low,medium,high,urgent',
             'division_id' => 'required|exists:divisions,id',
             'location' => 'required|string|max:255',
-            'scheduled_date' => 'nullable|date',
         ]);
 
         // Create a new task
@@ -53,7 +52,6 @@ class TaskController extends Controller
             'priority' => request('priority'),
             'division_id' => request('division_id'),
             'location' => request('location'),
-            'scheduled_date' => request('scheduled_date'),
             'created_by' => auth()->id(),
         ]);
 
@@ -66,8 +64,41 @@ class TaskController extends Controller
         return view('tasks.show', [ 'task' => $task ]);
     }
 
+    public function edit(Task $task)
+    {
+        $type = 'base';
+
+        if (request()->is('tasks/*/maintenance/edit')) {
+            $type = 'maintenance';
+        }
+
+        // Fetch all divisions
+        $divisions = Division::select('id as value', 'name')->get()->toArray();
+
+        return view('tasks.edit', [ 'task' => $task , 'divisions' => $divisions , 'type' => $type ]);
+    }
+
     public function update(Task $task)
     {
-        dd($task);
+        // Validate the request data
+        request()->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'division_id' => 'required|exists:divisions,id',
+            'location' => 'required|string|max:255',
+        ]);
+
+        // Update the task
+        $task->update([
+            'title' => request('title'),
+            'description' => request('description'),
+            'priority' => request('priority'),
+            'division_id' => request('division_id'),
+            'location' => request('location'),
+        ]);
+
+        // Redirect to the task's page with a success message
+        return redirect('/tasks/' . $task->id)->with('success', 'Task updated successfully!');
     }
 }

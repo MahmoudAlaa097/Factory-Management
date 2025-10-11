@@ -1,20 +1,13 @@
-@props([
-    'label',
-    'name' => '',
-    'type' => 'text',
-    'placeholder' => '',
-    'required' => false,
-])
+@props(['name', 'label' => '', 'type' => 'text', 'placeholder' => '', 'required' => false])
 
 <div>
-    <x-forms.label :required="$required">{{ $label }}</x-forms.label>
-
-    <input
-        type="{{ $type }}"
-        id="{{ $name }}"
-        name="{{ $name }}"
-        placeholder="{{ $placeholder }}"
-        @if($required) required @endif
-        class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-    />
+    <label for="{{ $name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ $label }}
+    </label>
+    <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}"
+           class="w-full rounded-lg border-none bg-background-light/50 p-4 text-gray-900
+                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-inset
+                  focus:ring-primary dark:bg-background-dark/50 dark:text-white
+                  dark:placeholder-gray-500"
+           placeholder="{{ $placeholder }}" {{ $required ? 'required' : '' }}>
 </div>

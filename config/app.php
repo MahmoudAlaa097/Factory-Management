@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'locale' => 'ar',
+    'fallback_locale' => 'en',
 ];
