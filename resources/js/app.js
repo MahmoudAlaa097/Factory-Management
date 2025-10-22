@@ -8,24 +8,29 @@ import LanguageManager from './modules/LanguageManager';
 const themeManager = new ThemeManager();
 
 /**
- * Initialize Language Management
- * Pass translations if available from the backend
+ * Initialize Language Management with configuration
  */
-const translations = window.translations || {};
-const languageManager = new LanguageManager(translations);
+const languageManager = new LanguageManager({
+    translations: window.translations || {},
+    defaultLang: 'ar',
+    storageKey: 'lang',
+    toggleButtonId: 'lang-toggle',
+    rtlLanguages: ['ar', 'he', 'fa', 'ur']
+});
 
-/**
- * Export to window for global access if needed
- */
+// Expose globally for debugging
 window.themeManager = themeManager;
 window.languageManager = languageManager;
 
-/**
- * Optional: Listen for system theme changes
- */
+// Optional: Listen to language change events
+window.addEventListener('languageChanged', (e) => {
+    console.log('[App] Language changed to:', e.detail.language);
+    console.log('[App] Direction:', e.detail.direction);
+});
+
+// Optional: Listen for system theme changes
 if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        // Only apply if user hasn't set a preference
         if (!localStorage.getItem('color-theme')) {
             if (e.matches) {
                 document.documentElement.classList.add('dark');

@@ -1,15 +1,28 @@
 // resources/js/modules/LanguageManager.js
 
 /**
+ * @typedef {Object} LanguageManagerConfig
+ * @property {Object<string, Object>} [translations={}] - Client-side translations
+ * @property {string} [defaultLang='ar'] - Default language
+ * @property {string} [storageKey='lang'] - localStorage key
+ * @property {string} [toggleButtonId='lang-toggle'] - Button element ID
+ * @property {string[]} [rtlLanguages=['ar','he','fa','ur']] - RTL language codes
+ */
+
+/**
  * Manages language/locale switching and RTL/LTR direction
+ * Integrates with Laravel's server-side locale management
  */
 export default class LanguageManager {
-    constructor(translations = {}) {
-        this.storageKey = 'lang';
-        this.translations = translations;
-        this.defaultLang = 'ar';
-        this.toggleButtonId = 'lang-toggle';
-        this.rtlLanguages = ['ar', 'he', 'fa', 'ur']; // Add more RTL languages as needed
+    /**
+     * @param {LanguageManagerConfig} config
+     */
+    constructor(config = {}) {
+        this.storageKey = config.storageKey || 'lang';
+        this.translations = config.translations || {};
+        this.defaultLang = config.defaultLang || 'ar';
+        this.toggleButtonId = config.toggleButtonId || 'lang-toggle';
+        this.rtlLanguages = config.rtlLanguages || ['ar', 'he', 'fa', 'ur'];
         this.init();
     }
 
@@ -21,14 +34,58 @@ export default class LanguageManager {
             this.applyInitialLanguage();
             this.setupToggleButton();
         });
+
+        // Sync when navigating with back/forward buttons
+        window.addEventListener('pageshow', () => {
+            this.syncWithServer();
+        });
     }
 
     /**
-     * Apply initial language from localStorage or default
+     * Apply initial language from server or localStorage
      */
     applyInitialLanguage() {
+        // CRITICAL: Check if HTML already has lang/dir set by Laravel (server-side)
+        const htmlLang = document.documentElement.getAttribute('lang');
+        const htmlDir = document.documentElement.getAttribute('dir');
+
+        // If server already set the language, sync localStorage and DON'T override
+        if (htmlLang && htmlDir) {
+            this.syncWithServer();
+            return;
+        }
+
+        // Fallback: Only apply client-side if server didn't set it (SPA pages, etc.)
         const lang = this.getCurrentLanguage();
         this.setLanguage(lang, false);
+    }
+
+    /**
+     * Manually sync localStorage with server-rendered locale
+     * Useful after navigation or dynamic content loading
+     * @returns {string|null} The synced language or null
+     */
+    syncWithServer() {
+        const serverLang = document.documentElement.getAttribute('lang');
+        const serverDir = document.documentElement.getAttribute('dir');
+
+        if (serverLang) {
+            const storedLang = localStorage.getItem(this.storageKey);
+
+            if (storedLang !== serverLang) {
+                console.log(`[LanguageManager] Syncing: ${storedLang} → ${serverLang}`);
+                localStorage.setItem(this.storageKey, serverLang);
+            }
+
+            // Ensure HTML attributes are correct
+            if (serverDir) {
+                document.documentElement.setAttribute('dir', serverDir);
+            }
+
+            return serverLang;
+        }
+
+        return null;
     }
 
     /**
@@ -46,18 +103,28 @@ export default class LanguageManager {
         const langBtn = document.getElementById(this.toggleButtonId);
 
         if (!langBtn) {
-            console.warn(`Language toggle button #${this.toggleButtonId} not found`);
+            console.warn(`[LanguageManager] Language toggle button #${this.toggleButtonId} not found`);
             return;
         }
 
-        langBtn.addEventListener('click', () => this.toggle());
+        langBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default link behavior
+
+            try {
+                this.toggle();
+            } catch (error) {
+                console.error('[LanguageManager] Toggle failed:', error);
+                // Fallback: reload page
+                window.location.reload();
+            }
+        });
     }
 
     /**
      * Toggle between languages (currently ar/en, but extensible)
      */
     toggle() {
-        const currentLang = document.documentElement.getAttribute('lang');
+        const currentLang = document.documentElement.getAttribute('lang') || this.getCurrentLanguage();
         const newLang = currentLang === 'ar' ? 'en' : 'ar';
         this.setLanguage(newLang, true);
     }
@@ -68,6 +135,12 @@ export default class LanguageManager {
      * @param {boolean} shouldReload - Whether to reload page for server-side translations
      */
     setLanguage(lang, shouldReload = false) {
+        // Validate language
+        if (!lang || typeof lang !== 'string') {
+            console.error('[LanguageManager] Invalid language code:', lang);
+            return;
+        }
+
         const html = document.documentElement;
 
         // Update HTML attributes
@@ -80,14 +153,16 @@ export default class LanguageManager {
         // Translate page elements if translations available
         this.translatePage(lang);
 
-        // Dispatch custom event
+        // Dispatch custom event for other scripts to listen to
         window.dispatchEvent(new CustomEvent('languageChanged', {
-            detail: { language: lang }
+            detail: { language: lang, direction: this.isRTL(lang) ? 'rtl' : 'ltr' }
         }));
 
-        // Optional: reload for server-side translations
-        if (shouldReload && this.shouldReloadOnChange()) {
-            window.location.reload();
+        // For Laravel apps, redirect to language switch route
+        if (shouldReload || this.shouldReloadOnChange()) {
+            // Use Laravel route instead of location.reload()
+            window.location.href = `/lang/${lang}`;
+            return;
         }
     }
 
@@ -102,20 +177,28 @@ export default class LanguageManager {
 
     /**
      * Determine if page should reload on language change
-     * Override this method or set a property if you need different behavior
      * @returns {boolean}
      */
     shouldReloadOnChange() {
-        // Don't reload on homepage or if translations are client-side only
-        return Object.keys(this.translations).length === 0 && window.location.pathname !== '/';
+        // Always reload if no client-side translations available
+        if (Object.keys(this.translations).length === 0) {
+            return true;
+        }
+
+        // Check if page has server-rendered content that needs translation
+        const hasServerTranslations = document.querySelector('[data-server-translated]') !== null;
+
+        return hasServerTranslations;
     }
 
     /**
      * Translate page elements using client-side translations
+     * NOTE: Currently unused - app uses Laravel's __() for server-side translations
      * @param {string} lang
      */
     translatePage(lang) {
-        if (!this.translations[lang]) {
+        // Skip if no translations provided
+        if (!this.translations[lang] || Object.keys(this.translations[lang]).length === 0) {
             return;
         }
 
@@ -227,5 +310,22 @@ export default class LanguageManager {
     getCurrentDirection() {
         const lang = this.getCurrentLanguage();
         return this.isRTL(lang) ? 'rtl' : 'ltr';
+    }
+
+    /**
+     * Get all supported languages
+     * @returns {string[]}
+     */
+    getSupportedLanguages() {
+        return ['ar', 'en']; // Extend as needed
+    }
+
+    /**
+     * Check if a language is supported
+     * @param {string} lang
+     * @returns {boolean}
+     */
+    isLanguageSupported(lang) {
+        return this.getSupportedLanguages().includes(lang);
     }
 }

@@ -33,6 +33,20 @@
         }
     </script>
 
+    <!-- Sync Laravel locale with JavaScript BEFORE loading app.js -->
+    <script>
+        // Get server-rendered locale
+        const serverLocale = '{{ app()->getLocale() }}';
+        const serverDir = '{{ app()->getLocale() === "ar" ? "rtl" : "ltr" }}';
+
+        // Force sync localStorage with server
+        localStorage.setItem('lang', serverLocale);
+
+        // Ensure HTML attributes are set (in case JS tries to override)
+        document.documentElement.setAttribute('lang', serverLocale);
+        document.documentElement.setAttribute('dir', serverDir);
+    </script>
+
     <!-- Additional Head Content -->
     @stack('head')
 
