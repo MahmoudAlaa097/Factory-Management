@@ -10,18 +10,19 @@ class Management extends Model
 
     protected $guarded = [];
 
+    // Relationships
     public function divisions()
     {
         return $this->hasMany(Division::class);
     }
 
-    public function users()
+    public function employees()
     {
-        return $this->hasMany(User::class, 'management_id');
+        return $this->hasMany(Employee::class);
     }
 
-    public function tasks()
+    public function manager()
     {
-        return $this->hasManyThrough(Task::class, Division::class);
+        return $this->hasOne(Employee::class)->managers();
     }
 }

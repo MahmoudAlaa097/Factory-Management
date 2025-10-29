@@ -12,4 +12,5 @@ return [
     'login' => 'تسجيل الدخول',
     'switch_language' => 'Switch to English',
     'dashboard' => 'لوحة القيادة',
+    'machines' => 'الماكينات',
 ];

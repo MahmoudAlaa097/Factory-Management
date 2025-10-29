@@ -16,17 +16,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->string('name');
-            $table->string('serial')->unique();
-            $table->foreignId('management_id')->nullable()->constrained('managements')->onDelete('set null');
-            $table->foreignId('division_id')->nullable()->constrained('divisions')->onDelete('set null');
-            $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null');
             $table->timestamps();
-        });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
         });
 
         Schema::create('sessions', function (Blueprint $table) {

@@ -24,8 +24,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ManagementSeeder::class,
             DivisionSeeder::class,
-            UserSeeder::class,
-            TaskSeeder::class,
+            EmployeeSeeder::class,
         ]);
     }
 }

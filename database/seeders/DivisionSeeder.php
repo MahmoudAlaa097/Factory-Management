@@ -15,18 +15,54 @@ class DivisionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Example data for divisions
-        $divisions = [
-            ['name' => 'Electrical', 'management_id' => 1],
-            ['name' => 'Traceability', 'management_id' => 1],
-            ['name' => 'Quality Assurance', 'management_id' => 2],
-            ['name' => 'Quality Control', 'management_id' => 3],
-            ['name' => 'Human Resources', 'management_id' => 4],
-            ['name' => 'Finance', 'management_id' => 5],
+        $production = Management::where('name', 'Production')->first();
+
+        // Parent divisions
+        $assembly = Division::create([
+            'name' => 'Assembly',
+            'management_id' => $production->id,
+            'parent_division_id' => null,
+        ]);
+
+        $packaging = Division::create([
+            'name' => 'Packaging',
+            'management_id' => $production->id,
+            'parent_division_id' => null,
+        ]);
+
+        // Assembly subdivisions
+        $assemblyDivisions = [
+            'Automatic Assembly',
+            'Manual Assembly',
+            'Insert',
+            'Vacuum',
+            'Thermo Forming',
+            'Scissors',
         ];
 
-        foreach ($divisions as $division) {
-            Division::create($division);
+        // Create assembly subdivisions
+        foreach ($assemblyDivisions as $divisionName) {
+            Division::create([
+                'name' => $divisionName,
+                'management_id' => $production->id,
+                'parent_division_id' => $assembly->id,
+            ]);
+        }
+
+        // Packaging subdivisions
+        $packagingDivisions = [
+            'Packaging',
+            'Blister',
+            'Mini Blister',
+        ];
+
+        // Create packaging subdivisions
+        foreach ($packagingDivisions as $divisionName) {
+            Division::create([
+                'name' => $divisionName,
+                'management_id' => $production->id,
+                'parent_division_id' => $packaging->id,
+            ]);
         }
     }
 }

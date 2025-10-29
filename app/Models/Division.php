@@ -9,23 +9,46 @@ class Division extends Model
 {
     protected $guarded = [];
 
+    // Relationships
+
     public function management()
     {
         return $this->belongsTo(Management::class);
     }
 
-    public function tasks()
+    public function parentDivision()
     {
-        return $this->hasMany(Task::class);
+        return $this->belongsTo(Division::class, 'parent_division_id');
     }
 
-    public function users()
+    public function childDivisions()
     {
-        return $this->hasMany(User::class, 'division_id');
+        return $this->hasMany(Division::class, 'parent_division_id');
+    }
+
+    public function employees()
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    public function machineTypes()
+    {
+        return $this->hasMany(MachineType::class);
     }
 
     public function machines()
     {
         return $this->hasMany(Machine::class);
+    }
+
+    // Helpers
+    public function isParent()
+    {
+        return is_null($this->parent_division_id);
+    }
+
+    public function isChild()
+    {
+        return !is_null($this->parent_division_id);
     }
 }

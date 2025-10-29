@@ -38,23 +38,12 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    public function tasks()
+    public function employee()
     {
-        return $this->hasMany(Task::class, 'created_by');
-    }
-
-    public function division()
-    {
-        return $this->belongsTo(Division::class, 'division_id');
-    }
-
-    public function managemenet()
-    {
-        return $this->belongTo(Management::class, 'management_id');
+        return $this->hasOne(Employee::class);
     }
 }

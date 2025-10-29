@@ -12,4 +12,5 @@ return [
     'login' => 'Login',
     'switch_language' => 'التبديل إلى العربية',
     'dashboard' => 'Dashboard',
+    'machines' => 'Machines',
 ];
