@@ -50,6 +50,11 @@ class Employee extends Model
         return $query->position('operator');
     }
 
+    public function scopeSupervisors($query)
+    {
+        return $query->position('supervisor');
+    }
+
     public function scopeActive($query)
     {
         return $query->whereHas('user', function($q) {

@@ -15,7 +15,7 @@ class DivisionSeeder extends Seeder
      */
     public function run(): void
     {
-        $production = Management::where('name', 'Production')->first();
+        $production = Management::production()->first();
 
         // Parent divisions
         $assembly = Division::create([

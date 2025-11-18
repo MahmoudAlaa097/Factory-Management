@@ -31,11 +31,6 @@ class Division extends Model
         return $this->hasMany(Employee::class);
     }
 
-    public function machineTypes()
-    {
-        return $this->hasMany(MachineType::class);
-    }
-
     public function machines()
     {
         return $this->hasMany(Machine::class);

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreignId('division_id')->nullable()->constrained('divisions')->onDelete('set null');
             $table->string('position');
             $table->timestamps();
+
+            $table->index(['management_id', 'division_id', 'position']);
         });
     }
 

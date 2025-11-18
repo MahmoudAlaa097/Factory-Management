@@ -18,9 +18,9 @@ class EmployeeSeeder extends Seeder
     public function run(): void
     {
         // Fetch managements
-        $production = Management::where('name', 'Production')->first();
-        $electrical = Management::where('name', 'Electrical Maintenance')->first();
-        $mechanical = Management::where('name', 'Mechanical Maintenance')->first();
+        $production = Management::production()->first();
+        $electrical = Management::maintenance()->where('name', 'LIKE', '%Electrical%')->first();
+        $mechanical = Management::maintenance()->where('name', 'LIKE', '%Mechanical%')->first();
 
         // Fetch divisions
         $automaticAssembly = Division::where('name', 'Automatic Assembly')->first();
