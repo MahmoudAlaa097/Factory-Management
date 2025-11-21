@@ -22,4 +22,9 @@ class MachineType extends Model
     {
         return $this->hasMany(Machine::class);
     }
+
+    public function machineSections()
+    {
+        return $this->belongsToMany(MachineSection::class, 'machine_type_machine_section');
+    }
 }

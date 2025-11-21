@@ -48,6 +48,11 @@ class Machine extends Model
         return $this->belongsTo(Division::class);
     }
 
+    public function machineSections()
+    {
+        return $this->hasMany(MachineSection::class);
+    }
+
     // Scopes
     public function scopeOperational($query)
     {
