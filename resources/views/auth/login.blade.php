@@ -15,7 +15,7 @@
     <form method="POST" action="/login" class="space-y-6">
         @csrf
 
-        <x-forms.input
+        <x-forms.auth.input
             name="username"
             label="{{ __('messages.username') }}"
             type="text"
@@ -23,7 +23,7 @@
             required="true"
         />
 
-        <x-forms.input
+        <x-forms.auth.input
             name="password"
             label="{{ __('messages.password') }}"
             type="password"
@@ -31,9 +31,9 @@
             required="true"
         />
 
-        <x-forms.submit>
+        <x-forms.auth.submit>
             {{ __('messages.login') }}
-        </x-forms.submit>
+        </x-forms.auth.submit>
     </form>
 
     {{-- Footer Slot --}}
