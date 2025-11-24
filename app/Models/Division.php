@@ -9,8 +9,10 @@ class Division extends Model
 {
     protected $guarded = [];
 
-    // Relationships
+    // Constants
+    public const TYPE_PRODUCTION = 'production';
 
+    // Relationships
     public function management()
     {
         return $this->belongsTo(Management::class);
@@ -36,6 +38,11 @@ class Division extends Model
         return $this->hasMany(Machine::class);
     }
 
+    public function children()
+    {
+        return $this->hasMany(Division::class, 'parent_division_id');
+    }
+
     // Helpers
     public function isParent()
     {
@@ -45,5 +52,13 @@ class Division extends Model
     public function isChild()
     {
         return !is_null($this->parent_division_id);
+    }
+
+    // Scopes
+    public function scopeProduction($query)
+    {
+        return $query->whereHas('management', function ($q) {
+            $q->where('type', self::TYPE_PRODUCTION);
+        })->whereDoesntHave('children');
     }
 }

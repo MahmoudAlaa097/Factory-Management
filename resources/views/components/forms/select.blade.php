@@ -1,9 +1,6 @@
-@props([ 'type' => 'text', 'placeholder' => '', 'value' => ''])
+@props(['placeholder' => ''])
 
-<input
-    type="{{ $type }}"
-    placeholder="{{ $placeholder }}"
-    value="{{ $value }}"
+<select
     {{
         $attributes->merge([
             'class' =>
@@ -13,4 +10,10 @@
                  px-4 focus:ring-2 focus:ring-primary/40 focus:outline-none'
         ])
     }}
-/>
+>
+    @if($placeholder)
+        <option value="">{{ $placeholder }}</option>
+    @endif
+
+    {{ $slot }}
+</select>

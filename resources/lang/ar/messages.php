@@ -12,5 +12,7 @@ return [
     'login' => 'تسجيل الدخول',
     'switch_language' => 'Switch to English',
     'dashboard' => 'لوحة القيادة',
+    'faults' => 'الأعطال',
+    'create fault request' => 'إنشاء طلب اصلاح',
     'machines' => 'الماكينات',
 ];

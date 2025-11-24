@@ -12,5 +12,7 @@ return [
     'login' => 'Login',
     'switch_language' => 'التبديل إلى العربية',
     'dashboard' => 'Dashboard',
+    'faults' => 'Faults',
+    'create fault request' => 'Create Fault Request',
     'machines' => 'Machines',
 ];

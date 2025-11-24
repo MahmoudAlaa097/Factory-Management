@@ -79,6 +79,11 @@ class Machine extends Model
         return $query->where('status', self::STATUS_IDLE);
     }
 
+    public function scopeDivision($query, int $divisionId)
+    {
+        return $query->where('division_id', $divisionId);
+    }
+
     // Helpers
     public static function getStatusValidationRule()
     {

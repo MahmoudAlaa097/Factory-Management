@@ -1,6 +1,39 @@
 import './bootstrap';
 import ThemeManager from './modules/ThemeManager';
 import LanguageManager from './modules/LanguageManager';
+import Alpine from 'alpinejs';
+import FaultForm from './modules/FaultForm';
+
+window.Alpine = Alpine;
+
+Alpine.data('faultForm', () => {
+    const formHelper = new FaultForm();
+
+    return {
+        // Reactive state
+        selectedDivision: '',
+        selectedMachine: '',
+        machines: [],
+
+        // Method to fetch machines
+        fetchMachines() {
+            if (!this.selectedDivision) {
+                this.machines = [];
+                this.selectedMachine = '';
+                return;
+            }
+
+            fetch(`/machines/by-division?division_id=${this.selectedDivision}`)
+                .then(res => res.json())
+                .then(data => {
+                    this.machines = formHelper.sortMachines(data); // use class method
+                    this.selectedMachine = '';
+                });
+        }
+    };
+});
+
+Alpine.start();
 
 /**
  * Initialize Theme Management
