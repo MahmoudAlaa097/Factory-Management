@@ -1,35 +1,26 @@
 <?php
+// app/Http/Controllers/FaultController.php
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\DivisionService;
-use App\Services\MachineService;
-
 class FaultController extends Controller
 {
-    public function create(DivisionService $divisionService)
+    /**
+     * Show the form for creating a new fault request
+     */
+    public function create()
     {
-        // Get production divisions
-        $productionDivisions = $divisionService->getProductionDivisions();
-
-        return view('fault.create', compact('productionDivisions'));
+        // Just return the view - Livewire handles everything else
+        return view('fault.create');
     }
 
     /**
-     * Return machines for a given division (used by AlpineJS).
+     * Display a listing of fault requests
      */
-    public function getMachinesByDivision(Request $request)
+    public function index()
     {
-        // Validate input
-        $request->validate([
-            'division_id' => 'required|exists:divisions,id',
-        ]);
 
-        // Get machines for the division
-        $machineService = new MachineService();
-        $machines = $machineService->getMachinesByDivision($request->division_id);
 
-        return response()->json($machines);
+        return view('fault.index');
     }
 }

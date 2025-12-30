@@ -24,14 +24,22 @@
         <a class="block px-4 py-2 text-sm text-foreground-light dark:text-foreground-dark hover:bg-subtle-light dark:hover:bg-subtle-dark"
             href="#">Settings</a>
         <div class="my-1 border-t border-subtle-light dark:border-subtle-dark"></div>
-        <a class="flex items-center gap-2 px-4 py-2 text-sm text-danger-light dark:text-danger-dark hover:bg-danger-light/10 dark:hover:bg-danger-dark/10"
-            href="#">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                stroke-width="2" viewBox="0 0 24 24">
-                <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                </path>
-            </svg>
-            <span>Logout</span>
-        </a>
+
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+
+            <button type="submit"
+                    class="flex w-full items-center gap-2 px-4 py-2 text-sm text-danger-light dark:text-danger-dark
+                        hover:bg-danger-light/10 dark:hover:bg-danger-dark/10">
+
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+
+                    <span>Logout</span>
+            </button>
+        </form>
     </div>
 </div>

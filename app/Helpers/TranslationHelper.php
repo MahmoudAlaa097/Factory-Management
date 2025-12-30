@@ -8,6 +8,6 @@ class TranslationHelper
 {
     public static function pageTitle(string $title): string
     {
-        return __('messages.' . Str::lower($title));
+        return __('messages.pages.' . Str::lower($title));
     }
 }

@@ -5,8 +5,8 @@
 
     <!-- Navigation -->
     <nav class="flex flex-col gap-2 flex-1">
-        <x-layout.sidebar.link name="{{ __('messages.dashboard') }}" icon="dashboard" route="dashboard" />
-        <x-layout.sidebar.link name="{{ __('messages.faults') }}" icon="fault" route="fixing-request" />
+        <x-layout.sidebar.link name="{{ __('messages.sidebar.dashboard') }}" icon="dashboard" route="dashboard" />
+        <x-layout.sidebar.link name="{{ __('messages.sidebar.faults') }}" icon="fault" route="fixing-request" />
     </nav>
 
     <!-- Actions -->

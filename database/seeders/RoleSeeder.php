@@ -32,8 +32,26 @@ class RoleSeeder extends Seeder
 
         // Example data for permissions
         $permissions = [
-            'view-employees',
-            'manage-employees',
+            // Fault Report Permissions
+            'view-faults',
+            'create-faults',
+
+            // Fault Assignment Permissions
+            'view-assignments',
+            'assign-faults',
+            'reassign-faults',
+
+            // Fault Resolution Permissions
+            'resolve-faults',
+            'view-resolutions',
+
+            // Machine Downtime Permissions
+            'view-downtime',
+            'manage-downtime',
+
+            // Reports
+            'view-reports',
+            'generate-reports',
         ];
 
         // Create permissions
@@ -46,6 +64,9 @@ class RoleSeeder extends Seeder
         $manager->givePermissionTo(Permission::all());
 
         $engineer = Role::findByName('engineer');
-        $engineer->givePermissionTo(['view-employees', 'manage-employees']);
+        $engineer->givePermissionTo(['view-faults', 'assign-faults']);
+
+        $operator = Role::findByName('operator');
+        $operator->givePermissionTo(['create-faults']);
     }
 }

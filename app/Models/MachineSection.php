@@ -17,4 +17,12 @@ class MachineSection extends Model
     {
         return $this->belongsToMany(MachineType::class, 'machine_type_machine_section');
     }
+
+    // Scopes
+    public function scopeMachineType($query, int $machineTypeId)
+    {
+        return $query->whereHas('machineTypes', function ($q) use ($machineTypeId) {
+            $q->where('machine_type_id', $machineTypeId);
+        });
+    }
 }

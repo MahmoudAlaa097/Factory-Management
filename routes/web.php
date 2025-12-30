@@ -13,18 +13,25 @@ use App\Http\Controllers\TestController;
 Route::get('lang/{lang}', [LanguageController::class, 'switch'])->name('switch-language');
 
 // Authentication Routes
-Route::get('/', [SessionController::class, 'create']);
-Route::post('/login', [SessionController::class, 'store']);
+Route::get('/', [SessionController::class, 'create'])
+    ->middleware('guest')
+    ->name('login');
+
+Route::post('/login', [SessionController::class, 'store'])
+    ->middleware('guest');
+
+Route::post('/logout', [SessionController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
 
 // Dashboard Routes
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('auth')
+    ->name('dashboard');
 
 // Fault Routes
-Route::get('/faults/create', [FaultController::class, 'create'])->name('fixing-request');
+Route::middleware(['auth', 'permission:create-faults'])->group(function () {
+    Route::get('/faults/create', [FaultController::class, 'create'])->name('fixing-request');
+});
 
-// AlpineJS Support Routes
-// Route to return machines for a given division
-Route::get('/machines/by-division', [FaultController::class, 'getMachinesByDivision'])
-     ->name('machines.byDivision');
-
-Route::get('/machines/by-division', [TestController::class, 'byDivision']);
+Route::get('/faults', [FaultController::class, 'index'])->name('faults.index');
