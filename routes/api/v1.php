@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\MachineController;
 use App\Http\Controllers\Api\V1\MachineSectionController;
 use App\Http\Controllers\Api\V1\ComponentTypeController;
 use App\Http\Controllers\Api\V1\MachineComponentController;
+use App\Http\Controllers\Api\V1\FaultController;
 
 Route::prefix('/v1')->middleware('auth:sanctum')
     ->group(function () {
@@ -20,4 +21,5 @@ Route::prefix('/v1')->middleware('auth:sanctum')
         Route::apiResource('machine-sections', MachineSectionController::class)->only(['index', 'show']);
         Route::apiResource('component-types', ComponentTypeController::class)->only(['index', 'show']);
         Route::apiResource('machine-components', MachineComponentController::class)->only(['index', 'show']);
+        Route::apiResource('faults', FaultController::class)->only(['index', 'show', 'store']);
     });
