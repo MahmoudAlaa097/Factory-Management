@@ -14,6 +14,8 @@ use Spatie\QueryBuilder\QueryBuilder;
 use App\Http\Requests\Api\V1\StoreFaultRequest;
 use App\Models\Machine;
 use App\Models\Employee;
+use App\Models\FaultComponent;
+use App\Models\MachineComponent;
 
 
 class FaultService extends BaseService
@@ -210,6 +212,50 @@ class FaultService extends BaseService
         }
 
         $fault->technicians()->detach($employee->id);
+
+        return $fault->fresh();
+    }
+
+    public function attachComponent(Fault $fault, int $componentId, ?string $notes): Fault
+    {
+        // Check component belongs to the machine's type sections
+        $machine   = $fault->machine;
+        $component = MachineComponent::findOrFail($componentId);
+
+        $validSectionIds = $machine->machineType->sections()
+            ->pluck('machine_sections.id');
+
+        if (!$validSectionIds->contains($component->machine_section_id)) {
+            throw ValidationException::withMessages([
+                'machine_component_id' => ['Component does not belong to this machine type.'],
+            ]);
+        }
+
+        // Prevent duplicate
+        if ($fault->components()->where('machine_component_id', $componentId)->exists()) {
+            throw ValidationException::withMessages([
+                'machine_component_id' => ['Component is already attached to this fault.'],
+            ]);
+        }
+
+        $fault->components()->create([
+            'machine_component_id' => $componentId,
+            'notes'                => $notes,
+        ]);
+
+        return $fault->fresh();
+    }
+
+    public function detachComponent(Fault $fault, FaultComponent $faultComponent): Fault
+    {
+        // Make sure component belongs to this fault
+        if ($faultComponent->fault_id !== $fault->id) {
+            throw new AuthorizationException(
+                'Component does not belong to this fault.',
+            );
+        }
+
+        $faultComponent->delete();
 
         return $fault->fresh();
     }

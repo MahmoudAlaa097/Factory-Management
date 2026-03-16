@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\ComponentTypeController;
 use App\Http\Controllers\Api\V1\MachineComponentController;
 use App\Http\Controllers\Api\V1\FaultController;
 use App\Http\Controllers\Api\V1\FaultTechnicianController;
+use App\Http\Controllers\Api\V1\FaultComponentController;
 
 Route::prefix('/v1')->middleware('auth:sanctum')
     ->group(function () {
@@ -24,16 +25,21 @@ Route::prefix('/v1')->middleware('auth:sanctum')
         Route::apiResource('machine-components', MachineComponentController::class)->only(['index', 'show']);
         Route::apiResource('faults', FaultController::class)->only(['index', 'show', 'store']);
 
-        Route::prefix('faults')->group(function () {
-            Route::patch('{fault}/respond', [FaultController::class, 'respond']);
-            Route::patch('{fault}/resolve', [FaultController::class, 'resolve']);
-            Route::patch('{fault}/accept',  [FaultController::class, 'accept']);
-            Route::patch('{fault}/approve', [FaultController::class, 'approve']);
-            Route::patch('{fault}/close',   [FaultController::class, 'close']);
+        Route::prefix('faults/{fault}')->group(function () {
+            Route::patch('/respond', [FaultController::class, 'respond']);
+            Route::patch('/resolve', [FaultController::class, 'resolve']);
+            Route::patch('/accept',  [FaultController::class, 'accept']);
+            Route::patch('/approve', [FaultController::class, 'approve']);
+            Route::patch('/close',   [FaultController::class, 'close']);
 
-            Route::prefix('{fault}/technicians')->group(function () {
+            Route::prefix('technicians')->group(function () {
                 Route::post('/',              [FaultTechnicianController::class, 'store']);
                 Route::delete('{employee}',   [FaultTechnicianController::class, 'destroy']);
+            });
+
+            Route::prefix('components')->group(function () {
+                Route::post('/',                    [FaultComponentController::class, 'store']);
+                Route::delete('{faultComponent}',   [FaultComponentController::class, 'destroy']);
             });
         });
     });

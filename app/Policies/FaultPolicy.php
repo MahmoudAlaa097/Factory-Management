@@ -163,4 +163,21 @@ class FaultPolicy
             && $employee->management->type->isMaintenance()
             && $employee->management_id === $fault->maintenance_management_id;
     }
+
+    public function manageComponents(User $user, Fault $fault): bool
+    {
+        if (!$fault->status->is(FaultStatus::InProgress)) return false;
+
+        $employee = $user->employee;
+
+        if ($employee->role->isAdmin()) return true;
+
+        return (
+            $employee->role->is(EmployeeRole::Technician) ||
+            $employee->role->is(EmployeeRole::Supervisor) ||
+            $employee->role->is(EmployeeRole::Engineer)
+        )
+            && $employee->management->type->isMaintenance()
+            && $employee->management_id === $fault->maintenance_management_id;
+    }
 }

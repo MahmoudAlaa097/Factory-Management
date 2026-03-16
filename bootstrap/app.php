@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -54,7 +55,17 @@ return Application::configure(basePath: dirname(__DIR__))
             return ApiResponse::notFound('Route not found');
         });
 
-        // Catch all — anything else
+        $exceptions->render(function (HttpException $e) {
+            if ($e->getStatusCode() === 403) {
+                return ApiResponse::forbidden();
+            }
+            if ($e->getStatusCode() === 401) {
+                return ApiResponse::unauthorized();
+            }
+            return ApiResponse::error($e->getMessage(), $e->getStatusCode());
+        });
+
+        // Catch all — keep for development, change to serverError in production
         $exceptions->render(function (Throwable $e) {
             return response()->json([
                 'message' => $e->getMessage(),
