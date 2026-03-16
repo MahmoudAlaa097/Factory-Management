@@ -180,4 +180,37 @@ class FaultPolicy
             && $employee->management->type->isMaintenance()
             && $employee->management_id === $fault->maintenance_management_id;
     }
+
+    public function logReplacement(User $user, Fault $fault): bool
+    {
+        if (!in_array($fault->status, [
+            FaultStatus::InProgress,
+            FaultStatus::Resolved,
+        ])) return false;
+
+        $employee = $user->employee;
+
+        if ($employee->role->isAdmin()) return true;
+
+        return (
+            $employee->role->is(EmployeeRole::Technician) ||
+            $employee->role->is(EmployeeRole::Supervisor) ||
+            $employee->role->is(EmployeeRole::Engineer)
+        )
+            && $employee->management->type->isMaintenance()
+            && $employee->management_id === $fault->maintenance_management_id;
+    }
+
+    public function viewReplacements(User $user, Fault $fault): bool
+    {
+        if (!$user->hasPermissionTo('view_faults')) return false;
+
+        $employee = $user->employee;
+
+        if ($employee->role->isAdmin()) return true;
+
+        // Only maintenance employees from correct management
+        return $employee->management->type->isMaintenance()
+            && $employee->management_id === $fault->maintenance_management_id;
+    }
 }

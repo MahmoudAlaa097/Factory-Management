@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\MachineComponentController;
 use App\Http\Controllers\Api\V1\FaultController;
 use App\Http\Controllers\Api\V1\FaultTechnicianController;
 use App\Http\Controllers\Api\V1\FaultComponentController;
+use App\Http\Controllers\Api\V1\ComponentReplacementController;
 
 Route::prefix('/v1')->middleware('auth:sanctum')
     ->group(function () {
@@ -40,6 +41,12 @@ Route::prefix('/v1')->middleware('auth:sanctum')
             Route::prefix('components')->group(function () {
                 Route::post('/',                    [FaultComponentController::class, 'store']);
                 Route::delete('{faultComponent}',   [FaultComponentController::class, 'destroy']);
+            });
+
+            Route::prefix('replacements')->group(function () {
+                Route::get('/',                          [ComponentReplacementController::class, 'index']);
+                Route::get('{componentReplacement}',     [ComponentReplacementController::class, 'show']);
+                Route::post('/',                         [ComponentReplacementController::class, 'store']);
             });
         });
     });
