@@ -108,4 +108,63 @@ class FaultService extends BaseService
             'reported_at'               => now(),
         ]);
     }
+
+    public function respond(Fault $fault, User $user): Fault
+    {
+        $employee = $user->employee;
+
+        $fault->update([
+            'status'                => FaultStatus::InProgress,
+            'technician_started_at' => now(),
+        ]);
+
+        $fault->technicians()->attach($employee->id, [
+            'assigned_at' => now(),
+        ]);
+
+        return $fault->fresh();
+    }
+
+    public function resolve(Fault $fault): Fault
+    {
+        $fault->update([
+            'status'      => FaultStatus::Resolved,
+            'resolved_at' => now(),
+        ]);
+
+        return $fault->fresh();
+    }
+
+    public function accept(Fault $fault): Fault
+    {
+        $fault->update([
+            'status'               => FaultStatus::OperatorAccepted,
+            'operator_accepted_at' => now(),
+        ]);
+
+        return $fault->fresh();
+    }
+
+    public function approveMaintenance(Fault $fault, User $user): Fault
+    {
+        $fault->update([
+            'status'                  => FaultStatus::MaintenanceApproved,
+            'maintenance_approved_by' => $user->employee->id,
+            'maintenance_approved_at' => now(),
+        ]);
+
+        return $fault->fresh();
+    }
+
+    public function close(Fault $fault, User $user): Fault
+    {
+        $fault->update([
+            'status'        => FaultStatus::Closed,
+            'closed_by'     => $user->employee->id,
+            'closed_at'     => now(),
+            'time_consumed' => (int) round($fault->reported_at->diffInMinutes(now())),
+        ]);
+
+        return $fault->fresh();
+    }
 }

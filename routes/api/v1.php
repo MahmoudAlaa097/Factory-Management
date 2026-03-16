@@ -22,4 +22,12 @@ Route::prefix('/v1')->middleware('auth:sanctum')
         Route::apiResource('component-types', ComponentTypeController::class)->only(['index', 'show']);
         Route::apiResource('machine-components', MachineComponentController::class)->only(['index', 'show']);
         Route::apiResource('faults', FaultController::class)->only(['index', 'show', 'store']);
+
+        Route::prefix('faults')->group(function () {
+            Route::patch('{fault}/respond', [FaultController::class, 'respond']);
+            Route::patch('{fault}/resolve', [FaultController::class, 'resolve']);
+            Route::patch('{fault}/accept',  [FaultController::class, 'accept']);
+            Route::patch('{fault}/approve', [FaultController::class, 'approve']);
+            Route::patch('{fault}/close',   [FaultController::class, 'close']);
+        });
     });
