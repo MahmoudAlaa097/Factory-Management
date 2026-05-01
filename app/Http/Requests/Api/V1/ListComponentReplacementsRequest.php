@@ -8,19 +8,19 @@ class ListComponentReplacementsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('viewReplacements', $this->route('fault'));
     }
 
     public function rules(): array
     {
         return [
-            'include'              => ['sometimes', 'string'],
-            'filter.fault_id'      => ['sometimes', 'integer', 'exists:faults,id'],
-            'filter.machine_id'    => ['sometimes', 'integer', 'exists:machines,id'],
+            'include'                 => ['sometimes', 'string'],
+            'filter.fault_id'         => ['sometimes', 'integer', 'exists:faults,id'],
+            'filter.machine_id'       => ['sometimes', 'integer', 'exists:machines,id'],
             'filter.old_component_id' => ['sometimes', 'integer', 'exists:machine_components,id'],
             'filter.new_component_id' => ['sometimes', 'integer', 'exists:machine_components,id'],
-            'sort'                 => ['sometimes', 'string'],
-            'per_page'             => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'sort'                    => ['sometimes', 'string'],
+            'per_page'                => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }
 }

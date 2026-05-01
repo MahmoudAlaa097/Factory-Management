@@ -9,50 +9,35 @@ class MachinePolicy extends BasePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $this->allow($user, 'view_machines');
+        return true;
     }
 
     public function view(User $user, Machine $machine): bool
     {
-        return $this->allow($user, 'view_machines')
-            && $this->hasEmployee($user)
-            && (
-                $this->inMaintenance($user, $machine)
-                || $this->inProduction($user, $machine)
-            );
+        return $this->allow($user,
+            // Maintenance → all machines
+            $this->isMaintenance($user)
+            ||
+            // Production → own division only
+            (
+                $this->isProduction($user) &&
+                $user->employee?->division_id === $machine->division_id
+            )
+        );
     }
 
     public function create(User $user): bool
     {
-        return $this->allow($user, 'create_machines');
+        return $this->isAdmin($user);
     }
 
     public function update(User $user, Machine $machine): bool
     {
-        return $this->allow($user, 'update_machines')
-            && $this->hasEmployee($user)
-            && (
-                $this->inMaintenance($user, $machine)
-                || $this->inProduction($user, $machine)
-            );
+        return $this->isAdmin($user);
     }
 
     public function delete(User $user, Machine $machine): bool
     {
-        return $this->allow($user, 'delete_machines')
-            && $this->hasEmployee($user)
-            && $this->inProduction($user, $machine);
-    }
-
-    private function inMaintenance(User $user, Machine $machine): bool
-    {
-        return $this->isMaintenance($user)
-            && $user->employee?->management_id === $machine->maintenance_management_id;
-    }
-
-    private function inProduction(User $user, Machine $machine): bool
-    {
-        return $this->isProduction($user)
-            && $this->sameDivision($user, $machine);
+        return $this->isAdmin($user);
     }
 }

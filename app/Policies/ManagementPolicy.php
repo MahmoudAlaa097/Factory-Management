@@ -14,7 +14,9 @@ class ManagementPolicy extends BasePolicy
 
     public function view(User $user, Management $management): bool
     {
-        return $this->isAdmin($user);
+        return $this->allow($user,
+            $user->employee?->management_id === $management->id
+        );
     }
 
     public function create(User $user): bool

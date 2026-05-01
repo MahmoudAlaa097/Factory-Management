@@ -3,18 +3,26 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Models\Fault;
 
 abstract class BasePolicy
 {
-    protected function hasEmployee(User $user): bool
+    // -----------------------------------------------------------------------
+    // Core gate
+    // -----------------------------------------------------------------------
+
+    /**
+     * Admin always passes. Everyone else must satisfy $condition.
+     */
+    protected function allow(User $user, bool $condition): bool
     {
-        return $user->employee !== null;
+        return $this->isAdmin($user) || $condition;
     }
 
-    protected function allow(User $user, string $permission): bool
-    {
-        return $this->isAdmin($user) || $this->can($user, $permission);
-    }
+    // -----------------------------------------------------------------------
+    // Role checks
+    // -----------------------------------------------------------------------
+
 
     protected function isAdmin(User $user): bool
     {
@@ -46,21 +54,9 @@ abstract class BasePolicy
         return (bool) $user->employee?->role?->isOperator();
     }
 
-    protected function sameManagement(User $user, $model): bool
-    {
-        return $user->employee?->management_id === $model->maintenance_management_id
-            && $user->employee?->management?->type->isMaintenance();
-    }
-
-    protected function sameDivision(User $user, $model): bool
-    {
-        return $user->employee?->division_id === $model->division_id;
-    }
-
-    protected function can(User $user, string $permission): bool
-    {
-        return $user->hasPermissionTo($permission);
-    }
+    // -----------------------------------------------------------------------
+    // Management-type checks
+    // -----------------------------------------------------------------------
 
     protected function isMaintenance(User $user): bool
     {
@@ -70,5 +66,80 @@ abstract class BasePolicy
     protected function isProduction(User $user): bool
     {
         return (bool) $user->employee?->management?->type->isProduction();
+    }
+
+    // -----------------------------------------------------------------------
+    // Combined role + management-type helpers
+    // -----------------------------------------------------------------------
+
+    protected function isMaintenanceTechnician(User $user): bool
+    {
+        return $this->isTechnician($user) && $this->isMaintenance($user);
+    }
+
+    protected function isMaintenanceSupervisor(User $user): bool
+    {
+        return $this->isSupervisor($user) && $this->isMaintenance($user);
+    }
+
+    protected function isProductionSupervisor(User $user): bool
+    {
+        return $this->isSupervisor($user) && $this->isProduction($user);
+    }
+
+    protected function isProductionOperator(User $user): bool
+    {
+        return $this->isOperator($user) && $this->isProduction($user);
+    }
+
+    // -----------------------------------------------------------------------
+    // Scope helpers — generic models (management_id / division_id columns)
+    // -----------------------------------------------------------------------
+
+    /**
+     * User's management matches the model's management_id column.
+     * Use for: Division, Employee, and any model with management_id.
+     */
+    protected function sameManagement(User $user, $model): bool
+    {
+        return $user->employee?->management_id === $model->management_id;
+    }
+
+    /**
+     * User's division matches the model's division_id column.
+     */
+    protected function sameDivision(User $user, $model): bool
+    {
+        return $user->employee?->division_id === $model->division_id;
+    }
+
+    // -----------------------------------------------------------------------
+    // Scope helpers — Fault-specific (uses maintenance_management_id)
+    // -----------------------------------------------------------------------
+
+    /**
+     * User belongs to the maintenance management that owns this fault.
+     */
+    protected function faultInUserManagement(User $user, Fault $fault): bool
+    {
+        return $this->isMaintenance($user)
+            && $user->employee?->management_id === $fault->maintenance_management_id;
+    }
+
+    /**
+     * Fault was raised in the user's division.
+     */
+    protected function faultInUserDivision(User $user, Fault $fault): bool
+    {
+        return $user->employee?->division_id === $fault->division_id;
+    }
+
+    // -----------------------------------------------------------------------
+    // Spatie permission check (kept for non-policy use if needed)
+    // -----------------------------------------------------------------------
+
+    protected function can(User $user, string $permission): bool
+    {
+        return $user->hasPermissionTo($permission);
     }
 }

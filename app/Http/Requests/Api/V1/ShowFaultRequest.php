@@ -8,7 +8,7 @@ class ShowFaultRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('view', $this->route('fault'));
     }
 
     public function rules(): array

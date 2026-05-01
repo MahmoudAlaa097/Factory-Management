@@ -4,29 +4,13 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Fault;
-use App\Enums\EmployeeRole;
 use App\Enums\FaultStatus;
 
 class FaultPolicy extends BasePolicy
 {
-    private function inMaintenance(User $user, Fault $fault): bool
-    {
-        return $this->isMaintenance($user)
-            && $this->sameManagement($user, $fault);
-    }
-
-    private function inProduction(User $user, Fault $fault): bool
-    {
-        return $this->isProduction($user)
-            && $this->sameDivision($user, $fault);
-    }
-
-    private function isAssigned(User $user, Fault $fault): bool
-    {
-        return $fault->technicians()
-            ->where('employee_id', $user->employee->id)
-            ->exists();
-    }
+    // -----------------------------------------------------------------------
+    // Status machine helpers
+    // -----------------------------------------------------------------------
 
     private function canRespond(Fault $fault): bool
     {
@@ -53,105 +37,139 @@ class FaultPolicy extends BasePolicy
         return $fault->status->is(FaultStatus::MaintenanceApproved);
     }
 
-    private function canEditInProgress(Fault $fault): bool
+
+    private function isAssigned(User $user, Fault $fault): bool
     {
-        return $fault->status->is(FaultStatus::InProgress);
+        return $fault->technicians()
+            ->where('employees.id', $user->employee->id)
+            ->exists();
     }
+
+    // -----------------------------------------------------------------------
+    // Read
+    // -----------------------------------------------------------------------
 
     public function viewAny(User $user): bool
     {
-        return $this->allow($user, 'view_faults');
+        return $this->isAdmin($user)
+            || $this->isMaintenance($user)
+            || $this->isProduction($user);
     }
 
     public function view(User $user, Fault $fault): bool
     {
-        if (!$this->allow($user, 'view_faults')) return false;
-        if (!$this->hasEmployee($user)) return false;
+        if ($this->isAdmin($user)) {
+            return true;
+        }
 
-        $employee = $user->employee;
-
-        if ($this->inMaintenance($user, $fault)) {
-
-            if ($employee->role->is(EmployeeRole::Technician)) {
+        // Maintenance — scoped to their management
+        if ($this->faultInUserManagement($user, $fault)) {
+            // Technician: open/in_progress faults + their assigned faults
+            if ($this->isMaintenanceTechnician($user)) {
                 return $fault->status->is(FaultStatus::Open)
                     || $fault->status->is(FaultStatus::InProgress)
                     || $this->isAssigned($user, $fault);
             }
 
+            // Supervisor / Engineer / Manager: all faults in their management
             return true;
         }
 
-        if ($this->inProduction($user, $fault)) {
-
-            if ($employee->role->is(EmployeeRole::Operator)) {
-                return $fault->reported_by === $employee->id;
+        // Production — scoped to their division
+        if ($this->faultInUserDivision($user, $fault)) {
+            // Operator: own faults only
+            if ($this->isProductionOperator($user)) {
+                return $fault->reported_by === $user->employee->id;
             }
 
+            // Supervisor / Engineer / Manager: all faults in their division
             return true;
         }
 
         return false;
     }
 
+    // -----------------------------------------------------------------------
+    // Fault lifecycle
+    // -----------------------------------------------------------------------
+
     public function create(User $user): bool
     {
-        return $this->allow($user, 'report_fault');
+        return $this->isProductionOperator($user)
+            || ($this->isEngineer($user) && $this->isProduction($user));
     }
 
     public function respond(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'respond_fault')
-            && $this->hasEmployee($user)
-            && $this->canRespond($fault)
-            && $this->isTechnician($user)
-            && $this->inMaintenance($user, $fault);
+        return $this->canRespond($fault)
+            && $this->faultInUserManagement($user, $fault)
+            && (
+                $this->isMaintenanceTechnician($user)
+                || $this->isMaintenanceSupervisor($user)
+            );
     }
 
     public function resolve(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'resolve_fault')
-            && $this->hasEmployee($user)
-            && $this->canResolve($fault)
-            && $this->isTechnician($user)
-            && $this->inMaintenance($user, $fault)
-            && $this->isAssigned($user, $fault);
+        if (! $this->canResolve($fault)) {
+            return false;
+        }
+
+        if (! $this->faultInUserManagement($user, $fault)) {
+            return false;
+        }
+
+        // Technician must be assigned
+        if ($this->isMaintenanceTechnician($user)) {
+            return $this->isAssigned($user, $fault);
+        }
+
+        // Supervisor can resolve without being assigned
+        if ($this->isMaintenanceSupervisor($user)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function accept(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'accept_fault')
-            && $this->hasEmployee($user)
-            && $this->canAccept($fault)
-            && $this->isOperator($user)
-            && $this->inProduction($user, $fault)
-            && $fault->reported_by === $user->employee->id;
+        return $this->canAccept($fault)
+            && $this->faultInUserDivision($user, $fault)
+            && (
+                $this->isProductionOperator($user)
+                || $this->isProductionSupervisor($user)
+                || ($this->isEngineer($user) && $this->isProduction($user))
+            );
     }
 
     public function approve(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'approve_fault')
-            && $this->hasEmployee($user)
-            && $this->canApprove($fault)
-            && $this->isSupervisor($user)
-            && $this->inMaintenance($user, $fault);
+        return $this->canApprove($fault)
+            && $this->faultInUserManagement($user, $fault)
+            && $this->isMaintenanceSupervisor($user);
     }
 
     public function close(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'close_fault')
-            && $this->hasEmployee($user)
-            && $this->canClose($fault)
+        return $this->canClose($fault)
+            && $this->faultInUserManagement($user, $fault)
             && $this->isEngineer($user)
-            && $this->inMaintenance($user, $fault);
+            && $this->isMaintenance($user);
     }
+
+    // -----------------------------------------------------------------------
+    // Technician assignment
+    // -----------------------------------------------------------------------
 
     public function assignTechnician(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'manage_technicians')
-            && $this->hasEmployee($user)
-            && $this->canEditInProgress($fault)
-            && $this->inMaintenance($user, $fault)
-            && ($this->isSupervisor($user) || $this->isEngineer($user));
+        return $this->canResolve($fault)
+            && $this->faultInUserManagement($user, $fault)
+            && (
+                $this->isMaintenanceSupervisor($user)
+                || ($this->isEngineer($user) && $this->isMaintenance($user))
+            );
     }
 
     public function unassignTechnician(User $user, Fault $fault): bool
@@ -159,32 +177,41 @@ class FaultPolicy extends BasePolicy
         return $this->assignTechnician($user, $fault);
     }
 
+    // -----------------------------------------------------------------------
+    // Components
+    // -----------------------------------------------------------------------
+
     public function manageComponents(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'manage_components')
-            && $this->hasEmployee($user)
-            && $this->canEditInProgress($fault)
-            && $this->inMaintenance($user, $fault)
+        return $this->canResolve($fault)
+            && $this->faultInUserManagement($user, $fault)
             && (
-                $this->isTechnician($user)
-                || $this->isSupervisor($user)
-                || $this->isEngineer($user)
+                $this->isMaintenanceTechnician($user)
+                || $this->isMaintenanceSupervisor($user)
+                || ($this->isEngineer($user) && $this->isMaintenance($user))
             );
     }
 
+    // -----------------------------------------------------------------------
+    // Replacements
+    // -----------------------------------------------------------------------
+
     public function logReplacement(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'log_replacement')
-            && $this->hasEmployee($user)
-            && ($this->canEditInProgress($fault) || $this->canResolve($fault))
-            && $this->inMaintenance($user, $fault)
-            && ($this->isTechnician($user) || $this->isSupervisor($user));
+        return $this->canResolve($fault)
+            && $this->faultInUserManagement($user, $fault)
+            && (
+                $this->isMaintenanceTechnician($user)
+                || $this->isMaintenanceSupervisor($user)
+            );
     }
 
     public function viewReplacements(User $user, Fault $fault): bool
     {
-        return $this->allow($user, 'view_faults')
-            && $this->hasEmployee($user)
-            && $this->inMaintenance($user, $fault);
+        return $this->isAdmin($user)
+            || (
+                $this->isMaintenance($user)
+                && $this->faultInUserManagement($user, $fault)
+            );
     }
 }
