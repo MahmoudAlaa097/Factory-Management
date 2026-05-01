@@ -32,6 +32,7 @@ Route::prefix('/v1')->middleware('auth:sanctum')
             Route::patch('/accept',  [FaultController::class, 'accept']);
             Route::patch('/approve', [FaultController::class, 'approve']);
             Route::patch('/close',   [FaultController::class, 'close']);
+            Route::patch('/resolution', [FaultController::class, 'updateResolution']);
 
             Route::prefix('technicians')->group(function () {
                 Route::post('/',              [FaultTechnicianController::class, 'store']);

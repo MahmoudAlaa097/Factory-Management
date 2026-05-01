@@ -96,7 +96,8 @@ class FaultPolicy extends BasePolicy
     public function create(User $user): bool
     {
         return $this->isProductionOperator($user)
-            || ($this->isEngineer($user) && $this->isProduction($user));
+            || $this->isProductionSupervisor($user)
+            || $this->isProductionEngineer($user);
     }
 
     public function respond(User $user, Fault $fault): bool
@@ -139,7 +140,7 @@ class FaultPolicy extends BasePolicy
             && (
                 $this->isProductionOperator($user)
                 || $this->isProductionSupervisor($user)
-                || ($this->isEngineer($user) && $this->isProduction($user))
+                || $this->isProductionEngineer($user)
             );
     }
 
@@ -154,8 +155,7 @@ class FaultPolicy extends BasePolicy
     {
         return $this->canClose($fault)
             && $this->faultInUserManagement($user, $fault)
-            && $this->isEngineer($user)
-            && $this->isMaintenance($user);
+            && $this->isMaintenanceEngineer($user);
     }
 
     // -----------------------------------------------------------------------
@@ -168,7 +168,7 @@ class FaultPolicy extends BasePolicy
             && $this->faultInUserManagement($user, $fault)
             && (
                 $this->isMaintenanceSupervisor($user)
-                || ($this->isEngineer($user) && $this->isMaintenance($user))
+                || $this->isMaintenanceEngineer($user)
             );
     }
 
@@ -188,7 +188,7 @@ class FaultPolicy extends BasePolicy
             && (
                 $this->isMaintenanceTechnician($user)
                 || $this->isMaintenanceSupervisor($user)
-                || ($this->isEngineer($user) && $this->isMaintenance($user))
+                || $this->isMaintenanceEngineer($user)
             );
     }
 
@@ -204,6 +204,24 @@ class FaultPolicy extends BasePolicy
                 $this->isMaintenanceTechnician($user)
                 || $this->isMaintenanceSupervisor($user)
             );
+    }
+
+    public function updateResolution(User $user, Fault $fault): bool
+    {
+        if (! $this->faultInUserManagement($user, $fault)) {
+            return false;
+        }
+
+        // Closed — engineer and manager only
+        if ($fault->status->is(FaultStatus::Closed)) {
+            return $this->isMaintenanceEngineer($user)
+            || $this->isMaintenanceManager($user);
+        }
+
+        // in_progress through maintenance_approved — supervisor, engineer, manager
+        return $this->isMaintenanceSupervisor($user)
+            || $this->isMaintenanceEngineer($user)
+            || $this->isMaintenanceManager($user);
     }
 
     public function viewReplacements(User $user, Fault $fault): bool

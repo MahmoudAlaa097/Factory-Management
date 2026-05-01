@@ -82,6 +82,16 @@ abstract class BasePolicy
         return $this->isSupervisor($user) && $this->isMaintenance($user);
     }
 
+    protected function isMaintenanceEngineer(User $user): bool
+    {
+        return $this->isEngineer($user) && $this->isMaintenance($user);
+    }
+
+    protected function isMaintenanceManager(User $user): bool
+    {
+        return $this->isManager($user) && $this->isMaintenance($user);
+    }
+
     protected function isProductionSupervisor(User $user): bool
     {
         return $this->isSupervisor($user) && $this->isProduction($user);
@@ -90,6 +100,16 @@ abstract class BasePolicy
     protected function isProductionOperator(User $user): bool
     {
         return $this->isOperator($user) && $this->isProduction($user);
+    }
+
+    protected function isProductionEngineer(User $user): bool
+    {
+        return $this->isEngineer($user) && $this->isProduction($user);
+    }
+
+    protected function isProductionManager(User $user): bool
+    {
+        return $this->isManager($user) && $this->isProduction($user);
     }
 
     // -----------------------------------------------------------------------

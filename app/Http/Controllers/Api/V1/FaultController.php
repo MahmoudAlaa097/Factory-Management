@@ -10,6 +10,7 @@ use App\Actions\V1\Fault\ReportFaultAction;
 use App\Actions\V1\Fault\ResolveFaultAction;
 use App\Actions\V1\Fault\RespondToFaultAction;
 use App\Actions\V1\Fault\ShowFaultAction;
+use App\Actions\V1\Fault\UpdateFaultResolutionAction;
 use App\Helpers\QueryScope;
 use App\Http\Requests\Api\V1\AcceptFaultRequest;
 use App\Http\Requests\Api\V1\ApproveMaintenanceFaultRequest;
@@ -19,6 +20,7 @@ use App\Http\Requests\Api\V1\ResolveFaultRequest;
 use App\Http\Requests\Api\V1\RespondToFaultRequest;
 use App\Http\Requests\Api\V1\ShowFaultRequest;
 use App\Http\Requests\Api\V1\StoreFaultRequest;
+use App\Http\Requests\Api\V1\UpdateFaultResolutionRequest;
 use App\Http\Resources\V1\FaultResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Fault;
@@ -35,6 +37,7 @@ class FaultController extends BaseController
         private AcceptFaultAction             $acceptAction,
         private ApproveMaintenanceFaultAction $approveAction,
         private CloseFaultAction              $closeAction,
+        private UpdateFaultResolutionAction   $updateResolutionAction,
     ) {}
 
     public function index(ListFaultsRequest $request): JsonResponse
@@ -146,6 +149,17 @@ class FaultController extends BaseController
     {
         return ApiResponse::success(
             $message,
+            new FaultResource($fault)
+        );
+    }
+
+    public function updateResolution(UpdateFaultResolutionRequest $request, Fault $fault): JsonResponse
+    {
+        $fault = $this->updateResolutionAction->execute($request, $fault);
+        $fault->load('components');
+
+        return ApiResponse::success(
+            'Resolution updated successfully',
             new FaultResource($fault)
         );
     }
