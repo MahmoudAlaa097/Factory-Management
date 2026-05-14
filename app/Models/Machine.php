@@ -42,4 +42,9 @@ class Machine extends Model
     {
         return $this->hasMany(ComponentReplacement::class);
     }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
 }

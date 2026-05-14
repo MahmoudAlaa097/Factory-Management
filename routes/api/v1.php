@@ -14,6 +14,9 @@ use App\Http\Controllers\Api\V1\FaultTechnicianController;
 use App\Http\Controllers\Api\V1\FaultComponentController;
 use App\Http\Controllers\Api\V1\ComponentReplacementController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\WorkOrderController;
+use App\Http\Controllers\Api\V1\KpiController;
+
 
 Route::prefix('/v1')->middleware('auth:sanctum')
     ->group(function () {
@@ -58,4 +61,12 @@ Route::prefix('/v1')->middleware('auth:sanctum')
             Route::get('technicians', [DashboardController::class, 'technicians']);
             Route::get('activity',    [DashboardController::class, 'activity']);
         });
+
+        // Work Orders
+        Route::get('/work-orders',          [WorkOrderController::class, 'index']);
+        Route::post('/work-orders',         [WorkOrderController::class, 'store']);
+        Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show']);
+
+        // KPIs
+        Route::get('/kpis/work-orders', [KpiController::class, 'workOrders']);
     });

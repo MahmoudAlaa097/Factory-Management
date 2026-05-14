@@ -170,4 +170,16 @@ class Employee extends Model
     {
         return $this->isManager() && $this->isProduction();
     }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class, 'logged_by');
+    }
+
+    public function assignedWorkOrders(): BelongsToMany
+    {
+        return $this->belongsToMany(WorkOrder::class, 'work_order_technicians')
+                    ->withTimestamps();
+    }
 }
+
