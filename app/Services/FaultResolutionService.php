@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\ResolutionUpdated;
 use App\Http\Requests\Api\V1\UpdateFaultResolutionRequest;
 use App\Models\Fault;
 use App\Models\FaultComponent;
@@ -12,7 +13,7 @@ class FaultResolutionService
 {
     public function updateResolution(UpdateFaultResolutionRequest $request, Fault $fault): Fault
     {
-        return DB::transaction(function () use ($request, $fault) {
+        $updatedFault = DB::transaction(function () use ($request, $fault) {
 
             // Update fault-level fields if present
             $fault->fill(array_filter([
@@ -40,5 +41,9 @@ class FaultResolutionService
 
             return $fault->fresh();
         });
+
+        ResolutionUpdated::dispatch($updatedFault);
+
+        return $updatedFault;
     }
 }

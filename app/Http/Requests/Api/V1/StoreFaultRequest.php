@@ -12,7 +12,7 @@ class StoreFaultRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('store', Fault::class);
+        return $this->user()->can('create', Fault::class);
     }
 
     public function rules(): array

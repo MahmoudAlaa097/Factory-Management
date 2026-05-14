@@ -8,6 +8,8 @@ use App\Models\Fault;
 use App\Models\FaultComponent;
 use App\Models\ComponentReplacement;
 use App\Models\User;
+use App\Events\FaultComponentAttached;
+use App\Events\ResolutionUpdated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -54,6 +56,8 @@ class FaultComponentService
                     'replaced_at'          => $request->replaced_at,
                 ]);
             }
+
+            FaultComponentAttached::dispatch($fault, $faultComponent);
 
             return $faultComponent;
         });

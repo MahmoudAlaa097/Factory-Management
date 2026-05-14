@@ -4,19 +4,24 @@ namespace App\Services;
 
 use App\Enums\EmployeeRole;
 use App\Enums\FaultStatus;
-use App\Models\Fault;
-use App\Models\User;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Spatie\QueryBuilder\AllowedFilter;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Auth\Access\AuthorizationException;
-use Spatie\QueryBuilder\QueryBuilder;
+use App\Events\FaultCreated;
+use App\Events\FaultStatusChanged;
+use App\Events\TechnicianAssigned;
+use App\Events\TechnicianUnassigned;
+use App\Events\FaultComponentAttached;
+use App\Events\FaultComponentDetached;
 use App\Http\Requests\Api\V1\StoreFaultRequest;
-use App\Models\Machine;
 use App\Models\Employee;
+use App\Models\Fault;
 use App\Models\FaultComponent;
+use App\Models\Machine;
 use App\Models\MachineComponent;
-
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class FaultService extends BaseService
 {
@@ -58,30 +63,26 @@ class FaultService extends BaseService
             ->allowedIncludes($this->allowedIncludes)
             ->allowedFilters($this->getAllowedFilters())
             ->allowedSorts($this->allowedSorts)
-            ->when(!$employee->role->isAdmin(), function ($query) use ($employee) {
+            ->when(! $employee->role->isAdmin(), function ($query) use ($employee) {
 
-                // Maintenance — scoped to their management
                 if ($employee->management->type->isMaintenance()) {
                     $query->where('maintenance_management_id', $employee->management_id);
 
-                    // Technician — open/in_progress or own assigned faults
                     if ($employee->role->is(EmployeeRole::Technician)) {
                         $query->where(function ($q) use ($employee) {
                             $q->whereIn('status', [
                                 FaultStatus::Open->value,
                                 FaultStatus::InProgress->value,
-                            ])->orWhereHas('technicians', fn($q) =>
+                            ])->orWhereHas('technicians', fn ($q) =>
                                 $q->where('employees.id', $employee->id)
                             );
                         });
                     }
                 }
 
-                // Production — scoped to their division
                 if ($employee->management->type->isProduction()) {
                     $query->where('division_id', $employee->division_id);
 
-                    // Operator — own faults only
                     if ($employee->role->is(EmployeeRole::Operator)) {
                         $query->where('reported_by', $employee->id);
                     }
@@ -100,75 +101,96 @@ class FaultService extends BaseService
 
     public function report(StoreFaultRequest $request, User $user): Fault
     {
-        $employee = $user->employee;
-        $machine  = Machine::findOrFail($request->machine_id);
+        $machine = Machine::findOrFail($request->machine_id);
 
-        return Fault::create([
+        $fault = Fault::create([
             'machine_id'                => $machine->id,
             'division_id'               => $machine->division_id,
             'maintenance_management_id' => $request->maintenance_management_id,
-            'reported_by'               => $employee->id,
+            'reported_by'               => $user->employee->id,
             'status'                    => FaultStatus::Open,
             'description'               => $request->description,
             'reported_at'               => now(),
         ]);
+
+        FaultCreated::dispatch($fault);
+
+        return $fault;
     }
 
     public function respond(Fault $fault, User $user): Fault
     {
-        $employee = $user->employee;
+        $oldStatus = $fault->status;
 
         $fault->update([
             'status'                => FaultStatus::InProgress,
             'technician_started_at' => now(),
         ]);
 
-        $fault->technicians()->attach($employee->id, [
+        $fault->technicians()->attach($user->employee->id, [
             'assigned_at' => now(),
         ]);
+
+        FaultStatusChanged::dispatch($fault->fresh(), $oldStatus);
 
         return $fault->fresh();
     }
 
     public function resolve(Fault $fault): Fault
     {
+        $oldStatus = $fault->status;
+
         $fault->update([
             'status'      => FaultStatus::Resolved,
             'resolved_at' => now(),
         ]);
+
+        FaultStatusChanged::dispatch($fault->fresh(), $oldStatus);
 
         return $fault->fresh();
     }
 
     public function accept(Fault $fault): Fault
     {
+        $oldStatus = $fault->status;
+
         $fault->update([
             'status'               => FaultStatus::OperatorAccepted,
             'operator_accepted_at' => now(),
         ]);
+
+        FaultStatusChanged::dispatch($fault->fresh(), $oldStatus);
 
         return $fault->fresh();
     }
 
     public function approveMaintenance(Fault $fault, User $user): Fault
     {
+        $oldStatus = $fault->status;
+
         $fault->update([
             'status'                  => FaultStatus::MaintenanceApproved,
             'maintenance_approved_by' => $user->employee->id,
             'maintenance_approved_at' => now(),
         ]);
 
+        FaultStatusChanged::dispatch($fault->fresh(), $oldStatus);
+
         return $fault->fresh();
     }
 
     public function close(Fault $fault, User $user): Fault
     {
+        $oldStatus = $fault->status;
+
         $fault->update([
             'status'        => FaultStatus::Closed,
             'closed_by'     => $user->employee->id,
             'closed_at'     => now(),
             'time_consumed' => (int) round($fault->reported_at->diffInMinutes(now())),
         ]);
+
+        FaultStatusChanged::dispatch($fault->fresh(), $oldStatus);
 
         return $fault->fresh();
     }
@@ -177,14 +199,12 @@ class FaultService extends BaseService
     {
         $technician = Employee::findOrFail($technicianId);
 
-        // Must be from correct maintenance management
         if ($technician->management_id !== $fault->maintenance_management_id) {
             throw new AuthorizationException(
                 'Technician must belong to the correct maintenance management.'
             );
         }
 
-        // Prevent duplicate assignment
         if ($fault->technicians()->where('employees.id', $technicianId)->exists()) {
             throw ValidationException::withMessages([
                 'technician_id' => ['Technician is already assigned to this fault.'],
@@ -195,12 +215,13 @@ class FaultService extends BaseService
             'assigned_at' => now(),
         ]);
 
+        TechnicianAssigned::dispatch($fault, $technician);
+
         return $fault->fresh();
     }
 
-    public function unassignTechnician(Fault $fault, \App\Models\Employee $employee): Fault
+    public function unassignTechnician(Fault $fault, Employee $employee): Fault
     {
-        // Cannot unassign original responding technician
         $originalTechnicianId = $fault->technicians()
             ->orderBy('fault_technicians.assigned_at')
             ->first()?->id;
@@ -213,42 +234,13 @@ class FaultService extends BaseService
 
         $fault->technicians()->detach($employee->id);
 
-        return $fault->fresh();
-    }
-
-    public function attachComponent(Fault $fault, int $componentId, ?string $notes): Fault
-    {
-        // Check component belongs to the machine's type sections
-        $machine   = $fault->machine;
-        $component = MachineComponent::findOrFail($componentId);
-
-        $validSectionIds = $machine->machineType->sections()
-            ->pluck('machine_sections.id');
-
-        if (!$validSectionIds->contains($component->machine_section_id)) {
-            throw ValidationException::withMessages([
-                'machine_component_id' => ['Component does not belong to this machine type.'],
-            ]);
-        }
-
-        // Prevent duplicate
-        if ($fault->components()->where('machine_component_id', $componentId)->exists()) {
-            throw ValidationException::withMessages([
-                'machine_component_id' => ['Component is already attached to this fault.'],
-            ]);
-        }
-
-        $fault->components()->create([
-            'machine_component_id' => $componentId,
-            'notes'                => $notes,
-        ]);
+        TechnicianUnassigned::dispatch($fault, $employee);
 
         return $fault->fresh();
     }
 
     public function detachComponent(Fault $fault, FaultComponent $faultComponent): Fault
     {
-        // Make sure component belongs to this fault
         if ($faultComponent->fault_id !== $fault->id) {
             throw new AuthorizationException(
                 'Component does not belong to this fault.',
@@ -256,6 +248,8 @@ class FaultService extends BaseService
         }
 
         $faultComponent->delete();
+
+        FaultComponentDetached::dispatch($fault, $faultComponent);
 
         return $fault->fresh();
     }

@@ -97,7 +97,8 @@ class FaultPolicy extends BasePolicy
     public function create(User $user): bool
     {
         return $this->isProductionOperator($user)
-            || ($this->isEngineer($user) && $this->isProduction($user));
+            || $this->isProductionSupervisor($user)
+            || $this->isProductionEngineer($user);
     }
 
     public function respond(User $user, Fault $fault): bool
@@ -140,7 +141,7 @@ class FaultPolicy extends BasePolicy
             && (
                 $this->isProductionOperator($user)
                 || $this->isProductionSupervisor($user)
-                || ($this->isEngineer($user) && $this->isProduction($user))
+                || $this->isProductionEngineer($user)
             );
     }
 
@@ -169,7 +170,7 @@ class FaultPolicy extends BasePolicy
             && UserContext::ownsFaultManagement($user, $fault)
             && (
                 $this->isMaintenanceSupervisor($user)
-                || ($this->isEngineer($user) && $this->isMaintenance($user))
+                || $this->isMaintenanceEngineer($user)
             );
     }
 
@@ -189,7 +190,7 @@ class FaultPolicy extends BasePolicy
             && (
                 $this->isMaintenanceTechnician($user)
                 || $this->isMaintenanceSupervisor($user)
-                || ($this->isEngineer($user) && $this->isMaintenance($user))
+                || $this->isMaintenanceEngineer($user)
             );
     }
 
@@ -221,8 +222,8 @@ class FaultPolicy extends BasePolicy
 
         // in_progress through maintenance_approved — supervisor, engineer, manager
         return $this->isMaintenanceSupervisor($user)
-            || ($this->isEngineer($user) && $this->isMaintenance($user))
-            || ($this->isManager($user) && $this->isMaintenance($user));
+            || $this->isMaintenanceEngineer($user)
+            || $this->isMaintenanceManager($user);
     }
 
     public function viewReplacements(User $user, Fault $fault): bool
