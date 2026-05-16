@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\V1\Employee\ListEmployeesAction;
+use App\Actions\V1\Employee\ListEmployeesForUserAction;
 use App\Actions\V1\Employee\ShowEmployeeAction;
 use App\Http\Requests\Api\V1\ListEmployeesRequest;
 use App\Http\Resources\V1\EmployeeResource;
@@ -12,15 +12,15 @@ use Illuminate\Http\JsonResponse;
 class EmployeeController extends BaseController
 {
     public function __construct(
-        private ListEmployeesAction $listAction,
-        private ShowEmployeeAction  $showAction,
+        private ListEmployeesForUserAction $listAction,
+        private ShowEmployeeAction         $showAction,
     ) {}
 
     public function index(ListEmployeesRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Employee::class);
 
-        $employees = $this->listAction->execute();
+        $employees = $this->listAction->execute($request->user());
 
         return $this->successCollection(
             'Employees retrieved successfully',

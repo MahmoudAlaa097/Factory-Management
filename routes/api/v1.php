@@ -69,4 +69,7 @@ Route::prefix('/v1')->middleware('auth:sanctum')
 
         // KPIs
         Route::get('/kpis/work-orders', [KpiController::class, 'workOrders']);
+
+        Route::get('machines/{machine}/sections', [MachineController::class, 'sections']);
+        Route::get('machine-sections/{machineSection}/components', [MachineSectionController::class, 'components']);
     });

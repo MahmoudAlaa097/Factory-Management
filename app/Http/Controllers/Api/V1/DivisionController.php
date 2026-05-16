@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\V1\Division\ListDivisionsAction;
+use App\Actions\V1\Division\ListDivisionsForUserAction;
 use App\Actions\V1\Division\ShowDivisionAction;
 use App\Http\Requests\Api\V1\ListDivisionsRequest;
 use App\Http\Resources\V1\DivisionResource;
@@ -12,15 +12,15 @@ use Illuminate\Http\JsonResponse;
 class DivisionController extends BaseController
 {
     public function __construct(
-        private ListDivisionsAction $listAction,
-        private ShowDivisionAction  $showAction,
+        private ListDivisionsForUserAction $listAction,
+        private ShowDivisionAction         $showAction,
     ) {}
 
     public function index(ListDivisionsRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Division::class);
 
-        $divisions = $this->listAction->execute();
+        $divisions = $this->listAction->execute($request->user());
 
         return $this->successCollection(
             'Divisions retrieved successfully',
