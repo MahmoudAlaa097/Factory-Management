@@ -8,6 +8,7 @@ use App\Actions\V1\WorkOrder\CreateWorkOrderAction;
 use App\Enums\WorkOrderType;
 use App\Models\WorkOrder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -22,17 +23,18 @@ class WorkOrderService extends BaseService
         'technicians',
         'components.section',
         'components.component',
-        'division',
+        'requester',
     ];
 
     protected array $allowedFilters = [
         'type',
         'machine_id',
+        'task_tag',
     ];
 
     protected array $allowedSorts = [
-        'start_time',
-        'end_time',
+        'date',
+        'duration_minutes',
         'created_at',
     ];
 
@@ -47,14 +49,13 @@ class WorkOrderService extends BaseService
         return QueryBuilder::for($this->model)
             ->allowedIncludes($this->allowedIncludes)
             ->allowedFilters([
-                ...$this->getAllowedFilters(),                          // exact: type, machine_id
-                AllowedFilter::exact('technician_id', 'technicians.id') // relational
-                    ->default(null),
+                ...$this->getAllowedFilters(),
+                AllowedFilter::exact('technician_id', 'technicians.id')->default(null),
                 AllowedFilter::scope('from_date', 'startedFrom'),
                 AllowedFilter::scope('to_date', 'startedBefore'),
             ])
             ->allowedSorts($this->allowedSorts)
-            ->defaultSort('-start_time')
+            ->defaultSort('-date')
             ->paginate(20)
             ->appends(request()->query());
     }
@@ -62,16 +63,24 @@ class WorkOrderService extends BaseService
     public function create(array $data): WorkOrder
     {
         return DB::transaction(function () use ($data) {
-
             $workOrder = $this->createWorkOrder->execute($data);
 
             $this->attachTechnicians->execute($workOrder, $data['technician_ids']);
 
             if ($data['type'] === WorkOrderType::Fault->value) {
-                $this->attachComponents->execute($workOrder, $data['affected_components']);
+                $this->attachComponents->execute($workOrder, $data['affected_components'] ?? []);
             }
 
             return $workOrder->load($this->allowedIncludes);
         });
+    }
+
+    public function distinctTags(): Collection
+    {
+        return WorkOrder::query()
+            ->whereNotNull('task_tag')
+            ->distinct()
+            ->orderBy('task_tag')
+            ->pluck('task_tag');
     }
 }

@@ -16,7 +16,7 @@ class ManagementPolicy extends BasePolicy
     {
         return $this->allow($user,
             $user->employee?->management_id === $management->id
-        );
+        ) ;
     }
 
     public function create(User $user): bool

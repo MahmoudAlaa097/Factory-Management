@@ -26,8 +26,8 @@ class AuthResource extends JsonResource
                     'name'       => $this->employee->name,
                     'code'       => $this->employee->code,
                     'role'       => $this->employee->role,
-                    'management' => $this->employee->management->type,
-                    'division'   => $this->employee->division->name,
+                    'management' => $this->employee->management?->type,
+                    'division'   => $this->employee->division?->name,
                 ],
             ],
         ];

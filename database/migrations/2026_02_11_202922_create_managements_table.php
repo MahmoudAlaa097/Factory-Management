@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('managements', function (Blueprint $table) {
             $table->id();
             $table->enum('type', array_column(ManagementType::cases(), 'value'))->unique();
+            $table->string('name');
             $table->timestamps();
         });
     }

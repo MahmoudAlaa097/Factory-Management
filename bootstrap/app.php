@@ -23,7 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->redirectGuestsTo(fn () => response()->json([
+            'status'  => 'error',
+            'message' => 'Unauthenticated.',
+        ], 401));
     })
     ->withExceptions(function (Exceptions $exceptions) {
 
@@ -36,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Unauthenticated — no token or invalid token
-        $exceptions->render(function (AuthenticationException $e) {
+        $exceptions->render(function (AuthenticationException $e, $request) {
             return ApiResponse::unauthorized();
         });
 
@@ -66,12 +69,19 @@ return Application::configure(basePath: dirname(__DIR__))
             return ApiResponse::error($e->getMessage(), $e->getStatusCode());
         });
 
-        // Catch all — keep for development, change to serverError in production
+        // Catch all — debug mode with trace
         $exceptions->render(function (Throwable $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
                 'line'    => $e->getLine(),
+                'class'   => get_class($e),
+                'trace'   => collect($e->getTrace())->take(5)->map(fn ($t) => [
+                    'file'     => $t['file'] ?? null,
+                    'line'     => $t['line'] ?? null,
+                    'function' => $t['function'] ?? null,
+                    'class'    => $t['class'] ?? null,
+                ])->toArray(),
             ]);
         });
 

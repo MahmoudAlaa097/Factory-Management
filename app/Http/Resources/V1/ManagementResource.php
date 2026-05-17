@@ -11,6 +11,7 @@ class ManagementResource extends JsonResource
     {
         return [
             'id'         => $this->id,
+            'name'       => $this->name,
             'type'       => $this->type,
             'divisions'  => DivisionResource::collection($this->whenLoaded('divisions')),
             'employees'  => EmployeeResource::collection($this->whenLoaded('employees')),

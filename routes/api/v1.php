@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\ComponentReplacementController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\WorkOrderController;
 use App\Http\Controllers\Api\V1\KpiController;
+use App\Http\Controllers\Api\V1\ReportController;
 
 
 Route::prefix('/v1')->middleware('auth:sanctum')
@@ -63,13 +64,21 @@ Route::prefix('/v1')->middleware('auth:sanctum')
         });
 
         // Work Orders
-        Route::get('/work-orders',          [WorkOrderController::class, 'index']);
-        Route::post('/work-orders',         [WorkOrderController::class, 'store']);
-        Route::get('/work-orders/{workOrder}', [WorkOrderController::class, 'show']);
+        Route::prefix('work-orders')->group(function () {
+            Route::get('/',        [WorkOrderController::class, 'index']);
+            Route::post('/',       [WorkOrderController::class, 'store']);
+            Route::get('/tags',    [WorkOrderController::class, 'tags']);
+            Route::get('/{workOrder}', [WorkOrderController::class, 'show']);
+        });
 
         // KPIs
         Route::get('/kpis/work-orders', [KpiController::class, 'workOrders']);
 
         Route::get('machines/{machine}/sections', [MachineController::class, 'sections']);
         Route::get('machine-sections/{machineSection}/components', [MachineSectionController::class, 'components']);
+
+        Route::prefix('reports')->group(function () {
+            Route::get('/daily',   [ReportController::class, 'daily']);
+            // monthly comes next
+        });
     });

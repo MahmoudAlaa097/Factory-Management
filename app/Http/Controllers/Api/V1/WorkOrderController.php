@@ -41,8 +41,19 @@ class WorkOrderController extends Controller
                 'technicians',
                 'components.section',
                 'components.component',
-                'division',
+                'requester',
             ])
         );
+    }
+
+    /**
+     * GET /v1/work-orders/tags
+     * Distinct task_tag values for combobox suggestions.
+     */
+    public function tags(): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->workOrderService->distinctTags(),
+        ]);
     }
 }

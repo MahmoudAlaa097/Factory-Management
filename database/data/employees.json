@@ -1,11 +1,11 @@
 [
     {
         "username": "admin",
-        "name": "Admin",
-        "code": 1000,
+        "name": "Mahmoud Alaa",
+        "code": 7474,
         "role": "admin",
-        "management": "production",
-        "division": "Assembly"
+        "management": "electrical_maintenance",
+        "division": ""
     },
     {
         "username": "operator_01",
@@ -24,44 +24,108 @@
         "division": "Automatic Assembly"
     },
     {
-        "username": "electrical_technician_01",
-        "name": "Electrical Technician 01",
-        "code": 1003,
-        "role": "technician",
-        "management": "electrical_maintenance",
-        "division": "Assembly"
-    },
-    {
-        "username": "electrical_technician_02",
-        "name": "Electrical Technician 02",
-        "code": 1004,
-        "role": "technician",
-        "management": "electrical_maintenance",
-        "division": "Assembly"
-    },
-    {
-        "username": "mechanical_technician_01",
-        "name": "Mechanical Technician 01",
-        "code": 1005,
-        "role": "technician",
-        "management": "mechanical_maintenance",
-        "division": "Assembly"
-    },
-    {
-        "username": "electrical_supervisor_01",
-        "name": "Electrical Supervisor 01",
-        "code": 1006,
+        "username": "",
+        "name": "خالد كمال ثابت",
+        "code": 157,
         "role": "supervisor",
         "management": "electrical_maintenance",
-        "division": "Assembly"
+        "division": ""
     },
     {
-        "username": "mechanical_supervisor_01",
-        "name": "Mechanical Supervisor 01",
-        "code": 1007,
+        "username": "",
+        "name": "محمد ياقوت امين",
+        "code": 2098,
         "role": "supervisor",
-        "management": "mechanical_maintenance",
-        "division": "Assembly"
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "محمد احمد محمد",
+        "code": 3076,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "حامد محمد محمد",
+        "code": 4663,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "اسلام محمد حسين",
+        "code": 4688,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "مجدي كمال محمد",
+        "code": 5032,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "محمود حسن احمد",
+        "code": 1609,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "محمد سلامة عبدالعال",
+        "code": 4777,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "احمد السيد احمد",
+        "code": 7194,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "شهاب محمود محمد",
+        "code": 7310,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "محمود احمد عبدالسميع",
+        "code": 5759,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "احمد عزالدين عبدالعال",
+        "code": 7400,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
+    },
+    {
+        "username": "",
+        "name": "معاذ ابراهيم ابراهيم",
+        "code": 7468,
+        "role": "technician",
+        "management": "electrical_maintenance",
+        "division": ""
     },
     {
         "username": "electrical_engineer_01",

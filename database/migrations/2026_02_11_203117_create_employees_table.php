@@ -15,8 +15,8 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('management_id')->constrained('managements')->cascadeOnDelete();
-            $table->foreignId('division_id')->constrained('divisions')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('division_id')->nullable()->constrained('divisions')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('name');
             $table->integer('code')->unique();
             $table->enum('role', array_column(EmployeeRole::cases(), 'value'));

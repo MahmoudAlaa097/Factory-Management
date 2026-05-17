@@ -19,17 +19,28 @@ class EmployeeSeeder extends RelationalSeeder
         $divisions   = Division::all()->keyBy('name');
 
         collect($data)->each(function ($record) use ($users, $managements, $divisions) {
+
+            $user = !empty($record['username'])
+                ? $users->get($record['username'])
+                : null;
+
+            $division = !empty($record['division'])
+                ? $divisions->get($record['division'])
+                : null;
+
             Employee::create([
-                'user_id'       => $users[$record['username']]->id,
+                'user_id'       => $user?->id,
                 'management_id' => $managements[$record['management']]->id,
-                'division_id'   => $divisions[$record['division']]->id,
+                'division_id'   => $division?->id,
                 'name'          => $record['name'],
                 'code'          => $record['code'],
                 'role'          => $record['role'],
                 'is_active'     => true,
             ]);
 
-            $users[$record['username']]->assignRole($record['role']);
+            if ($user) {
+                $user->assignRole($record['role']);
+            }
         });
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class WorkOrder extends Model
 {
@@ -17,22 +18,23 @@ class WorkOrder extends Model
         'machine_id',
         'logged_by',
         'type',
+        'date',
+        'duration_minutes',
         'start_time',
         'end_time',
         'notes',
-        // preventive
         'maintenance_type',
-        'is_finished',
-        // task
         'task_title',
-        'division_id',
+        'task_tag',
+        'requester_type',
+        'requester_id',
     ];
 
     protected $casts = [
         'type'       => WorkOrderType::class,
+        'date'       => 'date',
         'start_time' => 'datetime',
         'end_time'   => 'datetime',
-        'is_finished' => 'boolean',
     ];
 
     // ── Relationships ──────────────────────────────────────────
@@ -47,9 +49,9 @@ class WorkOrder extends Model
         return $this->belongsTo(Employee::class, 'logged_by');
     }
 
-    public function division(): BelongsTo
+    public function requester(): MorphTo
     {
-        return $this->belongsTo(Division::class);
+        return $this->morphTo();
     }
 
     public function technicians(): BelongsToMany
@@ -63,29 +65,25 @@ class WorkOrder extends Model
         return $this->hasMany(WorkOrderComponent::class);
     }
 
-    // ── Scopes (used by Spatie QueryBuilder AllowedFilter::scope) ─
+    // ── Scopes ─────────────────────────────────────────────────
+
+    public function scopeForDate(\Illuminate\Database\Eloquent\Builder $query, string $date): void
+    {
+        $query->whereDate('date', $date);
+    }
+
+    public function scopeForMonth(\Illuminate\Database\Eloquent\Builder $query, string $yearMonth): void
+    {
+        $query->whereRaw("TO_CHAR(date, 'YYYY-MM') = ?", [$yearMonth]);
+    }
 
     public function scopeStartedFrom(\Illuminate\Database\Eloquent\Builder $query, string $date): void
     {
-        $query->where('start_time', '>=', $date);
+        $query->where('date', '>=', $date);
     }
 
     public function scopeStartedBefore(\Illuminate\Database\Eloquent\Builder $query, string $date): void
     {
-        $query->where('start_time', '<=', $date);
-    }
-
-    // ── Computed ───────────────────────────────────────────────
-
-    /**
-     * Duration in minutes between start_time and end_time.
-     */
-    public function getDurationMinutesAttribute(): ?int
-    {
-        if (! $this->end_time) {
-            return null;
-        }
-
-        return (int) $this->start_time->diffInMinutes($this->end_time);
+        $query->where('date', '<=', $date);
     }
 }

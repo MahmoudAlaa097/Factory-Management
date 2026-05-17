@@ -1,5 +1,5 @@
 [
-    { "type": "production" },
-    { "type": "electrical_maintenance" },
-    { "type": "mechanical_maintenance" }
+    { "name":"Production", "type": "production" },
+    { "name":"Electrical Maintenance", "type": "electrical_maintenance" },
+    { "name":"Mechanical Maintenance", "type": "mechanical_maintenance" }
 ]

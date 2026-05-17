@@ -2,26 +2,25 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\V1\Management\ListManagementsForUserAction;
+use App\Actions\V1\Management\ShowManagementAction;
+use App\Http\Requests\Api\V1\ListManagementsRequest;
 use App\Http\Resources\V1\ManagementResource;
 use App\Models\Management;
 use Illuminate\Http\JsonResponse;
-use App\Actions\V1\Management\ListManagementsAction;
-use App\Actions\V1\Management\ShowManagementAction;
-use App\Http\Requests\Api\V1\ListManagementsRequest;
 
-// ManagementController
 class ManagementController extends BaseController
 {
     public function __construct(
-        private ListManagementsAction $listAction,
-        private ShowManagementAction  $showAction,
+        private ListManagementsForUserAction $listAction,
+        private ShowManagementAction         $showAction,
     ) {}
 
-    public function index(): JsonResponse
+    public function index(ListManagementsRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Management::class);
 
-        $managements = $this->listAction->execute();
+        $managements = $this->listAction->execute($request->user());
 
         return $this->successCollection(
             'Managements retrieved successfully',
